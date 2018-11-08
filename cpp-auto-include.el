@@ -28,7 +28,48 @@
 (require 'rx)
 
 (defvar cpp-auto-include--header-regexp
-  `(("cstdio" nil t
+  `(
+    ("thread"         t t
+     ,"std::thread" )
+    ("atomic"         t t
+     ,(rx (and "std::" (or "atomic" "atomic_flag"))) )
+    ("mutex"          t t
+     ,(rx (and "std::" (or (and (? (or "recursive_" "timed_" "recursive_timed_")) "mutex") "lock_guard" "call_once" )))) 
+    ("condition_variable"         t t
+     ,"std::condition_variable" )
+    ("valarray"       t t
+     ,"std::valarray" )
+    ("tuple"          t t
+     ,(rx (or "std::tuple" (and "std::" (or "make_tuple" "tie") ))) )
+    ("regex"          t t
+     ,(rx (or "std::regex" (and "std::" (and "regex_" (or "match" "search" "replace")) ))) )
+    ("ratio"          t t
+     ,"std::ratio")
+    ("random"         t t
+     ,"std::mt19937"  )
+    ("memory"         t t
+     ,(rx (and "std::"  (or (and (or "shared" "weak" "unique") "_ptr") "make_shared" "make_unique")  )) )
+    ("initializer_list"         t t
+     ,"std::initializer_list" )
+    ("functional"     t t
+     ,(rx (and "std::"  (or "plus" "minus" "multiplies" "divides" "modulus" "negate" "not_equal_to" "equal_to" "greater" "less" (and (or "greater" "less") "_equal") (and "logical_" (or "and" "or" "not")) "not1" "not2" (and "bind" (or "1st" "2nd")))  )) )
+    ("exception"      t t
+     ,"std::exception" )
+    ("chrono"         t t
+     ,(rx (or (and "std::"  (or "duration" "time_point")  ) "std::system_clock")) )
+    ("future"         t t
+     ,(rx (or (and "std::"  (or "future" "promise" "package_task")  ) "std::async" )) )
+    ("unorderedset"   t t
+     ,(rx (and "std::"  (\? "unordered_") (\? "multi") "set")  ) )
+    ("unorderedmap"   t t
+     ,(rx (and "std::" (\? "unordered_") (\? "multi") "map"  )) )
+    ("stack"          t t
+     ,"std::stack" )
+    ("forward_list"   t t
+     ,"std::forward_list"  )
+    ("array"          t t
+     ,"std::array" )
+    ("cstdio" nil t
      ,(rx (and symbol-start
                (or  (and (or "scanf" "sscanf" "puts" "sprintf" "printf"
                              "gets" "fgets" "putchar")
