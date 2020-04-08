@@ -40,7 +40,7 @@
     ("valarray"       t t
      ,"std::valarray" )
     ("tuple"          t t
-     ,(rx (or "std::tuple" (and "std::" (or "make_tuple" "tie") ))) )
+     ,(rx (or "std::tuple" (and "std::" (or "make_tuple" "tie" "ignore") ))) )
     ("regex"          t t
      ,(rx (or "std::regex" (and "std::" (and "regex_" (or "match" "search" "replace")) ))) )
     ("ratio"          t t
@@ -69,6 +69,8 @@
      ,"std::forward_list"  )
     ("array"          t t
      ,"std::array" )
+    ("iterator"          t t
+     ,"std::ostream_iterator" )
     ("cstdio" nil t
      ,(rx (and symbol-start
                (or  (and (or "scanf" "sscanf" "puts" "sprintf" "printf"
@@ -76,7 +78,10 @@
                          (* space) "(")
                     (and  (or "FILE" "stdin" "stdout" "stderr")
                           symbol-end)))))
-    ("cassert" nil t "\\bassert\\s-+(")
+    ("cassert" nil t
+     ,(rx (and symbol-start
+               (or "assert")
+               (* space) "(")))
     ("cstring" nil t
      ,(rx (and symbol-start
                (or "memcpy" "memset" "memcmp" "memncmp"
@@ -102,7 +107,7 @@
 
     ("cmath" nil t
      ,(rx (and symbol-start
-               (or (and (or "powf" "powl"
+               (or (and (or "powf" "powl" "std::pow"
                             "acos" "acosf" "acosh" "acoshf" "acoshl" "acosl"
                             "asin" "asinf" "asinh" "asinhf" "asinhl" "asin"
                             "atan" "atan2" "atan2f" "atan2l" "atanf" "atanh" "atanhf"
@@ -117,7 +122,7 @@
                         (* space) "(")
                    (and (or "NAN" "INFINITY" "HUGE_VAL" "HUGE_VALF" "HUGE_VALL")
                         symbol-end)))))
-    ("strings.h" nil t
+    ("cstrings" nil t
      ,(rx (and symbol-start
                (or "bcmp" "bcopy" "bzero" "strcasecmp" "strncasecmp")
                (* space) "(")))
@@ -127,7 +132,7 @@
                )))
     ("cstdint" nil t
      ,(rx (and symbol-start
-               (or "PTRDIFF_MIN" "PTRDIFF_MAX" "SIZE_MAX" "SIG_ATOMIC_MIN" "SIG_ATOMIC_MAX" "WCHAR_MIN" "WCHAR_MAX" "WINT_MIN" "WINT_MAX"))))
+               (or "int8" "int16" "int32" "int64" "int_fast" "int_least" "intmax_t" "intptr_t" "PTRDIFF_MIN" "PTRDIFF_MAX" "SIZE_MAX" "SIG_ATOMIC_MIN" "SIG_ATOMIC_MAX" "WCHAR_MIN" "WCHAR_MAX" "WINT_MIN" "WINT_MAX"))))
     ("climits" nil t
      ,(rx (and symbol-start
                (or "CHAR_BIT" "MB_LEN_MAX" "CHAR_MIN" "CHAR_MAX" "SCHAR_MIN" "SHRT_MIN" "INT_MIN" "LONG_MIN" "LLONG_MIN" "SCHAR_MAX" "SHRT_MAX" "INT_MAX" "LONG_MAX"
@@ -150,22 +155,22 @@
     ("limits" t t "\\bnumeric_limits\\s-*<\\b")
     ("algorithm" t t
      ,(rx (and symbol-start
-               (or "sort" "stable_sort" "partial_sort" "partial_sort_copy" "find" "find_if"  "find_if_not"
+               (or "std::max" "sort" "stable_sort" "partial_sort" "partial_sort_copy" "find" "find_if"  "find_if_not"
                    "unique" "unique_copy" "reverse" "reverse_copy"
                    "nth_element" "lower_bound" "upper_bound" "fill" "binary_search"
                    "next_permutation" "prev_permutation"
                    "min" "max" "count" "random_shuffle" "swap")
-               (* space) "(")))
-    ("type_traits" t t
+               (* space) (or "(" "<"))))
+    ("type_traits" nil t
      ,(rx (and symbol-start
-               (or "decay_t" "decay")
+               (or "decay_t" "decay" "std::is_integral")
                (* space) "<")))
     ("numeric" t t
      ,(rx (and symbol-start
                (or "partial_sum" "accumulate" "adjacent_difference" "inner_product" "gcd" "lcm" "iota" "reduce" "transform_reduce" "inclusive_scan" "exclusive_scan" "transform_inclusive_scan" "transform_exclusive_scan")
                (* space) "(")))
     ("iostream" t t ,(rx (and symbol-start
-                              (or "cin" "cout" "cerr")
+                              (or "cin" "cout" "cerr" "ostream")
                               symbol-end)))
     ("array" t t ,(rx (and symbol-start
                            (or "array" "tuple_size" "tuple_element")
@@ -199,6 +204,16 @@
                                  (and (or "fixed" "hex")
                                       symbol-end)))))
     ("utility" t t "\\b\\(?:pair\\s-*<\\|make_pair\\)")))
+;; ("utility" t t
+;;  ,(rx (and symbol-start
+;;                (or "sort" "stable_sort" "partial_sort" "partial_sort_copy" "find" "find_if"  "find_if_not"
+;;                    "unique" "unique_copy" "reverse" "reverse_copy"
+;;                    "nth_element" "lower_bound" "upper_bound" "fill" "binary_search"
+;;                    "next_permutation" "prev_permutation"
+;;                    "min" "max" "count" "random_shuffle" "swap")
+;;                (* space) "(")))
+
+
 
 (defun cpp-auto-include--include-line (header)
   (save-excursion
@@ -280,7 +295,7 @@
     (let ((insert-point (or
                          (cpp-auto-include--header-include-guard-ifndef-insert-point)
                          (cpp-auto-include--header-include-guard-pragma-once-insert-point)
-                         (cpp-auto-include--header-include-insert-point)
+                          (cpp-auto-include--header-include-insert-point)
                          (point-min)
                          )))
       (goto-char insert-point)
